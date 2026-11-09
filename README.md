@@ -135,6 +135,13 @@ those archives. Linux x86_64 also installs the local compatibility wrapper.
 Leave `PASEO_AGY_ACP_OFFICIAL_BIN` unset, or keep it pointed at the managed
 wrapper. A different existing path is used as-is.
 
+The stock kernel materialises its built-in skills under `<workspace>/skills`.
+On macOS, where the signed kernel cannot be patched, the adapter redirects that
+generated tree to `~/.local/state/paseo-agy-acp/workspace-skills/<id>/` for the
+life of the connector and removes the link on exit, so checkouts stay clean.
+Set `PASEO_AGY_ACP_WORKSPACE_SKILLS_GUARD=off` to disable the redirect, or
+`redirect` to force it on another POSIX host.
+
 <!-- readme:quickstart -->
 ## Quickstart
 

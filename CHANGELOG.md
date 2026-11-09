@@ -2,6 +2,18 @@
 
 All notable changes to `paseo-agy-acp` are recorded here.
 
+## Unreleased
+
+### Added
+
+- Keep the stock 1.4.3 kernel's generated workspace skills out of the checkout.
+  On macOS, where the signed kernel cannot be patched to `TOOL` skill
+  presentation, the adapter now redirects `<workspace>/skills` (or only
+  `skills/system` when the checkout owns a real `skills/` directory) to
+  `~/.local/state/paseo-agy-acp/workspace-skills/<id>/` and removes the link
+  when the connector exits. `PASEO_AGY_ACP_WORKSPACE_SKILLS_GUARD=off` disables
+  the redirect; `redirect` forces it on other POSIX hosts.
+
 ## 2.7.0 - 2026-10-27
 
 ### Added
