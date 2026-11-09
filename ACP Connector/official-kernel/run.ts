@@ -2,6 +2,7 @@ import type { Readable, Writable } from "node:stream";
 import { ensureManagedOfficialKernel } from "./ensure-managed-kernel.js";
 import { OfficialKernelProxy } from "./proxy.js";
 import { spawnOfficialKernel } from "./spawn.js";
+import { WorkspaceSkillsGuard } from "./workspace-skills-guard.js";
 
 export interface RunOfficialKernelOptions {
   env?: NodeJS.ProcessEnv;
@@ -14,12 +15,16 @@ export async function runOfficialKernel(options: RunOfficialKernelOptions): Prom
   const env = options.env ?? process.env;
   const binary = await ensureManagedOfficialKernel(env);
   const child = spawnOfficialKernel({ ...env, PASEO_AGY_ACP_OFFICIAL_BIN: binary });
+  const skillsGuard = new WorkspaceSkillsGuard({ env });
+  const disposeSkillsGuard = () => skillsGuard.dispose();
+  process.once("exit", disposeSkillsGuard);
   const proxy = new OfficialKernelProxy({
     child,
     stdin: (options.stdin ?? process.stdin) as Readable,
     stdout: (options.stdout ?? process.stdout) as Writable,
     env,
-    version: options.version
+    version: options.version,
+    skillsGuard
   });
   const stop = () => proxy.close();
   process.on("SIGINT", stop);
@@ -29,6 +34,8 @@ export async function runOfficialKernel(options: RunOfficialKernelOptions): Prom
   } finally {
     process.off("SIGINT", stop);
     process.off("SIGTERM", stop);
+    process.off("exit", disposeSkillsGuard);
+    skillsGuard.dispose();
     if (child.exitCode === null && child.signalCode === null) {
       child.kill("SIGTERM");
     }

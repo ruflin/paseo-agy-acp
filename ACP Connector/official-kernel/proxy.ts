@@ -51,6 +51,12 @@ export interface OfficialKernelProxyOptions {
   stdout: Writable;
   env?: NodeJS.ProcessEnv;
   version: string;
+  skillsGuard?: WorkspaceSkillsGuardLike;
+}
+
+/** Keeps the stock kernel's generated workspace skills outside the checkout. */
+export interface WorkspaceSkillsGuardLike {
+  arm(cwd: string | undefined): void;
 }
 
 export class OfficialKernelProxy {
@@ -68,6 +74,7 @@ export class OfficialKernelProxy {
   readonly #env: NodeJS.ProcessEnv;
   readonly #context: PaseoSessionContext;
   readonly #skillMcp: SessionSkillMcpServer;
+  readonly #skillsGuard: WorkspaceSkillsGuardLike | undefined;
   readonly #diagnostics: ReturnType<typeof createKernelDiagnostics>;
   #notices = false;
   readonly #sessionSetup = new Map<JsonRpcId, { native: boolean; token?: string }>();
@@ -92,6 +99,7 @@ export class OfficialKernelProxy {
     this.#env = options.env ?? process.env;
     this.#context = new PaseoSessionContext(this.#env);
     this.#skillMcp = new SessionSkillMcpServer(this.#env);
+    this.#skillsGuard = options.skillsGuard;
     this.#diagnostics = createKernelDiagnostics({ env: this.#env });
     this.#admission = createOfficialAdmission(this.#env);
   }
@@ -270,6 +278,7 @@ export class OfficialKernelProxy {
       const cwd = extractCwd(params, this.#env);
       if (cwd && isRecord(params)) params = { ...params, cwd };
       else if (cwd && params === undefined) params = { cwd };
+      this.#skillsGuard?.arm(cwd);
       this.#requestTimings.set(request.id, this.#diagnostics.start("session_setup", { requestId: request.id }));
       const prepared = await this.#context.prepareSession(params);
       params = prepared.params;

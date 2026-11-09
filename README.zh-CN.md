@@ -120,6 +120,12 @@ v2.7.0 在 Linux x86_64 上使用本机 Paseo v0.13.2 ACP 客户端和官方内�
 `PASEO_AGY_ACP_OFFICIAL_BIN` 留空，或继续指向托管包装器即可。指向其他已存在路径时，
 按该路径启动。
 
+官方内核会把内置技能写入 `<workspace>/skills`。在无法修改签名内核的 macOS 上，适配器
+会在连接器生命周期内把该生成目录重定向到
+`~/.local/state/paseo-agy-acp/workspace-skills/<id>/`，并在退出时删除链接，避免污染
+代码仓库。设置 `PASEO_AGY_ACP_WORKSPACE_SKILLS_GUARD=off` 可关闭重定向；在其他 POSIX
+主机上可用 `redirect` 强制开启。
+
 <!-- readme:quickstart -->
 ## 快速开始
 
